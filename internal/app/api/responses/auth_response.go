@@ -4,11 +4,12 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/qytela/example-project-layout/internal/app/api/models"
 )
 
 type AuthSigninResponse struct {
-	AccessToken string          `json:"access_token"`
-	User        *AuthMeResponse `json:"user"`
+	UserAuthGrant models.UserAuthGrant `json:"grant"`
+	User          *AuthMeResponse      `json:"user"`
 }
 
 type AuthMeResponse struct {

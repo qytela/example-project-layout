@@ -15,6 +15,18 @@ func NewNoteHandler(service *services.NoteService) *NoteHandler {
 	}
 }
 
+func (h *NoteHandler) GetUserNotes(c echo.Context) error {
+	data, err := h.service.GetUserNotes(c)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, map[string]interface{}{
+		"status": true,
+		"data":   data,
+	})
+}
+
 func (h *NoteHandler) GetNotes(c echo.Context) error {
 	data, err := h.service.GetNotes(c)
 	if err != nil {

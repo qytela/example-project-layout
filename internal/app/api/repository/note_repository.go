@@ -18,6 +18,28 @@ func NewNoteRepository(db *sqlx.DB) *NoteRepository {
 	}
 }
 
+func (r *NoteRepository) GetUserNotes(userId uuid.UUID) ([]models.UserNote, error) {
+	var userNotes []models.UserNote
+
+	query := `
+		SELECT
+			users.id AS user_id,
+			note.id AS note_id,
+			note.note AS note,
+			note."order" AS order,
+			note.created_at AS created_at,
+			note.updated_at AS updated_at
+		FROM notes AS note
+		JOIN auth.users AS users ON note.user_id = users.id
+		WHERE user_id = $1
+	`
+	if err := r.db.Select(&userNotes, query, userId); err != nil {
+		return userNotes, err
+	}
+
+	return userNotes, nil
+}
+
 func (r *NoteRepository) GetNotes(userId uuid.UUID, paramOptions *queryhelper.ParamOptions) ([]models.Note, error) {
 	var notes []models.Note
 

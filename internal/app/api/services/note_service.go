@@ -24,6 +24,18 @@ func NewNoteService(repository *repository.NoteRepository) *NoteService {
 	}
 }
 
+func (s *NoteService) GetUserNotes(c echo.Context) ([]models.UserNote, error) {
+	userId := c.Get("userId").(uuid.UUID)
+
+	data, err := s.repository.GetUserNotes(userId)
+	if err != nil {
+		logger.MakeLogEntry(nil).Info(err)
+		return nil, exception.NewBadRequest()
+	}
+
+	return data, nil
+}
+
 func (s *NoteService) GetNotes(c echo.Context) ([]models.Note, error) {
 	userId := c.Get("userId").(uuid.UUID)
 

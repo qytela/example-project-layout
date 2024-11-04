@@ -27,6 +27,18 @@ func (h *AuthHandler) SignInWithEmailPassword(c echo.Context) error {
 	})
 }
 
+func (h *AuthHandler) GenerateNewRefreshToken(c echo.Context) error {
+	data, err := h.service.GenerateNewRefreshToken(c)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, map[string]interface{}{
+		"status": true,
+		"data":   data,
+	})
+}
+
 func (h *AuthHandler) GetUser(c echo.Context) error {
 	data, err := h.service.GetUser(c)
 	if err != nil {

@@ -7,12 +7,15 @@ import (
 )
 
 func AuthRoutes(g *echo.Group, handler *handlers.AuthHandler) {
-	router := g.Group("/auth")
+	route := "/auth"
 
-	routerProtect := g.Group("/auth")
+	router := g.Group(route)
+
+	routerProtect := g.Group(route)
 	routerProtect.Use(middleware.Auth)
 
 	router.POST("/login", handler.SignInWithEmailPassword)
+	router.POST("/refresh-token", handler.GenerateNewRefreshToken)
 
 	// Protected route
 	routerProtect.GET("/me", handler.GetUser)
@@ -22,6 +25,7 @@ func NoteRoutes(g *echo.Group, handler *handlers.NoteHandler) {
 	router := g.Group("/notes")
 	router.Use(middleware.Auth)
 
+	router.GET("/user-notes", handler.GetUserNotes)
 	router.GET("", handler.GetNotes)
 	router.POST("", handler.StoreNote)
 	router.PUT("/:id", handler.UpdateNote)
