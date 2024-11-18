@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,7 +68,7 @@ func (r *AuthRepository) StoreAndGetUserAuthGrant(userId uuid.UUID) (models.User
 		return userGrant, err
 	}
 
-	refreshToken, err := auth.GenerateRefreshToken(userAuthGrant.ID)
+	refreshToken, err := auth.GenerateRefreshToken(userAuthGrant.UserID)
 	if err != nil {
 		return userGrant, err
 	}
@@ -94,33 +93,17 @@ func (r *AuthRepository) StoreAndGetUserAuthGrant(userId uuid.UUID) (models.User
 	return userGrant, nil
 }
 
-func (r *AuthRepository) GenerateNewRefreshToken(req *requests.AuthRefreshRequest) (models.UserAuthGrant, error) {
-	var userAuthGrant models.UserAuthGrant
-
-	query := `SELECT * FROM user_auth_grants WHERE refresh_token = $1 AND refresh_token_revoked = false`
-	if err := r.db.Get(&userAuthGrant, query, req.RefreshToken); err != nil {
-		return userAuthGrant, err
-	}
-
-	if userAuthGrant.RefreshTokenExpiredAt.Time.Unix() < time.Now().Add(-60*time.Minute).Unix() {
-		// Revoked all token if expired
-		if err := r.RevokedUserAuthGrant(userAuthGrant.UserID); err != nil {
-			return userAuthGrant, err
-		}
-
-		return userAuthGrant, errors.New("refresh token has expired")
-	}
-
-	userGrant, err := r.StoreAndGetUserAuthGrant(userAuthGrant.UserID)
+func (r *AuthRepository) GenerateNewRefreshToken(userId uuid.UUID) (models.UserAuthGrant, error) {
+	userAuthGrant, err := r.StoreAndGetUserAuthGrant(userId)
 	if err != nil {
 		return userAuthGrant, err
 	}
 
-	if _, err := auth.ValidateRefreshToken(userGrant.RefreshToken.String); err != nil {
+	if _, err := auth.ValidateRefreshToken(userAuthGrant.RefreshToken.String); err != nil {
 		return userAuthGrant, err
 	}
 
-	return userGrant, nil
+	return userAuthGrant, nil
 }
 
 func (r *AuthRepository) RevokedUserAuthGrant(userId uuid.UUID) error {

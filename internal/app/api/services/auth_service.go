@@ -51,18 +51,29 @@ func (s *AuthService) SignInWithEmailPassword(c echo.Context) (*responses.AuthSi
 }
 
 func (s *AuthService) GenerateNewRefreshToken(c echo.Context) (*responses.AuthSigninResponse, error) {
-	req := new(requests.AuthRefreshRequest)
-	if err := utils.ValidateRequest(c, req); err != nil {
-		return nil, exception.NewInvalidRequest(err)
+	userId := c.Get("userId").(uuid.UUID)
+
+	user, err := s.repository.GetUser(userId)
+	if err != nil {
+		return nil, exception.NewUnauthorized()
 	}
 
-	userAuthGrant, err := s.repository.GenerateNewRefreshToken(req)
+	userAuthGrant, err := s.repository.GenerateNewRefreshToken(userId)
 	if err != nil {
 		return nil, exception.NewBadRequest()
 	}
 
 	return &responses.AuthSigninResponse{
 		UserAuthGrant: userAuthGrant,
+		User: &responses.AuthMeResponse{
+			ID:          user.ID,
+			Role:        user.Role,
+			Email:       user.Email,
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
+			Phone:       user.Phone,
+			BannedUntil: user.BannedUntil,
+		},
 	}, nil
 }
 

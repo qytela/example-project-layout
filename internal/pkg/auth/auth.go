@@ -15,11 +15,6 @@ type JwtClaims struct {
 	jwt.RegisteredClaims
 }
 
-type JwtRefreshClaims struct {
-	JTI int8
-	jwt.RegisteredClaims
-}
-
 func GenerateAccessToken(userId uuid.UUID) (string, error) {
 	claims := &JwtClaims{
 		Sub: userId,
@@ -39,9 +34,9 @@ func GenerateAccessToken(userId uuid.UUID) (string, error) {
 	return signedToken, nil
 }
 
-func GenerateRefreshToken(jti int8) (string, error) {
-	claims := &JwtRefreshClaims{
-		JTI: jti,
+func GenerateRefreshToken(userId uuid.UUID) (string, error) {
+	claims := &JwtClaims{
+		Sub: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 60)),
 			Issuer:    os.Getenv("JWT_REFRESH_ISSUER"),
@@ -82,10 +77,10 @@ func ValidateToken(signedToken string) (*JwtClaims, error) {
 	return claims, nil
 }
 
-func ValidateRefreshToken(signedToken string) (*JwtRefreshClaims, error) {
+func ValidateRefreshToken(signedToken string) (*JwtClaims, error) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
-		&JwtRefreshClaims{},
+		&JwtClaims{},
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_REFRESH_SECRET_KEY")), nil
 		},
@@ -94,7 +89,7 @@ func ValidateRefreshToken(signedToken string) (*JwtRefreshClaims, error) {
 		return nil, errors.New("failed to parse token")
 	}
 
-	claims, ok := token.Claims.(*JwtRefreshClaims)
+	claims, ok := token.Claims.(*JwtClaims)
 	if !ok {
 		return nil, errors.New("failed to parse claims")
 	}

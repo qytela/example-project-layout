@@ -14,8 +14,13 @@ func AuthRoutes(g *echo.Group, handler *handlers.AuthHandler) {
 	routerProtect := g.Group(route)
 	routerProtect.Use(middleware.Auth)
 
+	routerRefreshProtect := g.Group(route)
+	routerRefreshProtect.Use(middleware.AuthRefresh)
+
 	router.POST("/login", handler.SignInWithEmailPassword)
-	router.POST("/refresh-token", handler.GenerateNewRefreshToken)
+
+	// Refresh token route
+	routerRefreshProtect.POST("/refresh-token", handler.GenerateNewRefreshToken)
 
 	// Protected route
 	routerProtect.GET("/me", handler.GetUser)
