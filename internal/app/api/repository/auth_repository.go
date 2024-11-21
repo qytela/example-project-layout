@@ -110,8 +110,9 @@ func (r *AuthRepository) RevokedUserAuthGrant(userId uuid.UUID) error {
 	query := `
 		UPDATE user_auth_grants
 		SET access_token_revoked = true, refresh_token_revoked = true
+		WHERE user_id = $1
 	`
-	if _, err := r.db.Exec(query); err != nil {
+	if _, err := r.db.Exec(query, userId); err != nil {
 		return err
 	}
 
